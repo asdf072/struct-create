@@ -17,7 +17,7 @@ const (
 	DB_NAME     = "odc2"
 	// PKG_NAME gives name of the package using the stucts
 	PKG_NAME = "DbStructs"
-	// TAG_LABEL produces struct member tags
+	// TAG_LABEL produces tags commonly used to match database field names with Go struct members
 	TAG_LABEL = "db"
 )
 

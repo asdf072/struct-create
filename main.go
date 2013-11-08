@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -40,7 +39,6 @@ func writeStructs(schemas []ColumnSchema) (int, error) {
 	}
 	defer file.Close()
 
-	w := bufio.NewWriter(file)
 	currentTable := ""
 
 	neededImports := make(map[string]bool)
@@ -84,11 +82,10 @@ func writeStructs(schemas []ColumnSchema) (int, error) {
 		header = header + ")\n\n"
 	}
 
-	totalBytes, err := fmt.Fprint(w, header+out)
+	totalBytes, err := fmt.Fprint(file, header+out)
 	if err != nil {
 		log.Fatal(err)
 	}
-	w.Flush()
 	return totalBytes, nil
 }
 

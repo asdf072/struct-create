@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
@@ -10,15 +12,15 @@ import (
 	"strings"
 )
 
-const (
-	DB_USER     = "odc"
-	DB_PASSWORD = "nHVMdeU2Dx2sbzGD"
-	DB_NAME     = "odc2"
-	// PKG_NAME gives name of the package using the stucts
-	PKG_NAME = "DbStructs"
-	// TAG_LABEL produces tags commonly used to match database field names with Go struct members
-	TAG_LABEL = "db"
-)
+var config = new(struct { // type Config struct {
+	DbUser     string `json:"db_user"`
+	DbPassword string `json:"db_password"`
+	DbName     string `json:"db_name"`
+	// PkgName gives name of the package using the stucts
+	PkgName string `json:"pkg_name"`
+	// TagLabel produces tags commonly used to match database field names with Go struct members
+	TagLabel string `json:"tag_label"`
+})
 
 type ColumnSchema struct {
 	TableName              string
@@ -63,8 +65,8 @@ func writeStructs(schemas []ColumnSchema) (int, error) {
 			log.Fatal(err)
 		}
 		out = out + "\t" + formatName(cs.ColumnName) + " " + goType
-		if len(TAG_LABEL) > 0 {
-			out = out + "\t`" + TAG_LABEL + ":\"" + cs.ColumnName + "\"`"
+		if len(config.TagLabel) > 0 {
+			out = out + "\t`" + config.TagLabel + ":\"" + cs.ColumnName + "\"`"
 		}
 		out = out + "\n"
 		currentTable = cs.TableName
@@ -73,7 +75,7 @@ func writeStructs(schemas []ColumnSchema) (int, error) {
 	out = out + "}"
 
 	// Now add the header section
-	header := "package " + PKG_NAME + "\n\n"
+	header := "package " + config.PkgName + "\n\n"
 	if len(neededImports) > 0 {
 		header = header + "import (\n"
 		for imp := range neededImports {
@@ -90,7 +92,7 @@ func writeStructs(schemas []ColumnSchema) (int, error) {
 }
 
 func getSchema() []ColumnSchema {
-	conn, err := sql.Open("mysql", DB_USER+":"+DB_PASSWORD+"@/information_schema")
+	conn, err := sql.Open("mysql", config.DbUser+":"+config.DbPassword+"@/information_schema")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,7 +100,7 @@ func getSchema() []ColumnSchema {
 	q := "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE, " +
 		"CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, COLUMN_TYPE, " +
 		"COLUMN_KEY FROM COLUMNS WHERE TABLE_SCHEMA = ? ORDER BY TABLE_NAME, ORDINAL_POSITION"
-	rows, err := conn.Query(q, DB_NAME)
+	rows, err := conn.Query(q, config.DbName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,7 +165,23 @@ func goType(col *ColumnSchema) (string, string, error) {
 	return gt, requiredImport, nil
 }
 
+var configFile = flag.String("c", "config.json", "Config file")
+
 func main() {
+	flag.Parse()
+
+	f, err := os.Open(*configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.NewDecoder(f).Decode(&config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if config.PkgName == "" {
+		config.PkgName = "DbStructs"
+	}
+
 	columns := getSchema()
 	bytes, err := writeStructs(columns)
 	if err != nil {

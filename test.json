@@ -1,0 +1,7 @@
+{
+	"db_user": "db_user",
+	"db_password": "db_pass",
+	"db_name": "db_name",
+	"pkg_name": "JsonTest",
+	"tag_label": "db"
+}

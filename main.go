@@ -12,7 +12,17 @@ import (
 	"strings"
 )
 
-var config = new(struct { // type Config struct {
+var defaults = Configuration{
+	DbUser: "db_user",
+	DbPassword: "db_pw",
+	DbName: "bd_name",
+	PkgName: "DbStructs",
+	TagLabel: "db",
+}
+
+var config Configuration
+
+type Configuration struct {
 	DbUser     string `json:"db_user"`
 	DbPassword string `json:"db_password"`
 	DbName     string `json:"db_name"`
@@ -20,7 +30,7 @@ var config = new(struct { // type Config struct {
 	PkgName string `json:"pkg_name"`
 	// TagLabel produces tags commonly used to match database field names with Go struct members
 	TagLabel string `json:"tag_label"`
-})
+}
 
 type ColumnSchema struct {
 	TableName              string
@@ -165,21 +175,22 @@ func goType(col *ColumnSchema) (string, string, error) {
 	return gt, requiredImport, nil
 }
 
-var configFile = flag.String("c", "config.json", "Config file")
+var configFile = flag.String("json", "", "Config file")
 
 func main() {
 	flag.Parse()
-
-	f, err := os.Open(*configFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.NewDecoder(f).Decode(&config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if config.PkgName == "" {
-		config.PkgName = "DbStructs"
+	
+	if len(*configFile) > 0 {
+		f, err := os.Open(*configFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = json.NewDecoder(f).Decode(&config)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		config = defaults
 	}
 
 	columns := getSchema()

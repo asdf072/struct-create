@@ -135,6 +135,9 @@ func formatName(name string) string {
 	parts := strings.Split(name, "_")
 	newName := ""
 	for _, p := range parts {
+		if len(p) < 1 {
+			continue
+		}
 		newName = newName + strings.Replace(p, string(p[0]), strings.ToUpper(string(p[0])), 1)
 	}
 	return newName

@@ -150,13 +150,13 @@ func goType(col *ColumnSchema) (string, string, error) {
 	}
 	var gt string = ""
 	switch col.DataType {
-	case "varchar", "enum", "text", "longtext", "mediumtext":
+	case "char", "varchar", "enum", "text", "longtext", "mediumtext", "tinytext":
 		if col.IsNullable == "YES" {
 			gt = "sql.NullString"
 		} else {
 			gt = "string"
 		}
-	case "blob", "mediumblob", "longblob":
+	case "blob", "mediumblob", "longblob", "varbinary", "binary":
 		gt = "[]byte"
 	case "date", "time", "datetime", "timestamp":
 		gt, requiredImport = "time.Time", "time"
@@ -175,7 +175,7 @@ func goType(col *ColumnSchema) (string, string, error) {
 	}
 	if gt == "" {
 		n := col.TableName + "." + col.ColumnName
-		return "", "", errors.New("No compatible datatype for " + n + " found")
+		return "", "", errors.New("No compatible datatype (" + col.DataType + ") for " + n + " found")
 	}
 	return gt, requiredImport, nil
 }

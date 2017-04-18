@@ -150,7 +150,7 @@ func goType(col *ColumnSchema) (string, string, error) {
 	}
 	var gt string = ""
 	switch col.DataType {
-	case "char", "varchar", "enum", "text", "longtext", "mediumtext", "tinytext":
+	case "char", "varchar", "enum", "set", "text", "longtext", "mediumtext", "tinytext":
 		if col.IsNullable == "YES" {
 			gt = "sql.NullString"
 		} else {

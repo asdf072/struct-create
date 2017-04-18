@@ -160,7 +160,7 @@ func goType(col *ColumnSchema) (string, string, error) {
 		gt = "[]byte"
 	case "date", "time", "datetime", "timestamp":
 		gt, requiredImport = "time.Time", "time"
-	case "tinyint", "smallint", "int", "mediumint", "bigint":
+	case "bit", "tinyint", "smallint", "int", "mediumint", "bigint":
 		if col.IsNullable == "YES" {
 			gt = "sql.NullInt64"
 		} else {
